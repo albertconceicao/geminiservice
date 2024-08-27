@@ -1,0 +1,67 @@
+{
+	"env": {
+			"browser": true,
+			"es2021": true
+	},
+	"extends": [
+		"airbnb-base",
+		"prettier"
+	],
+	"parser" : "@typescript-eslint/parser",
+	"parserOptions": {
+			"ecmaVersion": "latest",
+			"sourceType": "module"
+	},
+	"plugins": [
+		"@typescript-eslint",
+		"prettier"
+	],
+	"settings": {
+		"import/resolver": {
+			"typescript": {}
+		}
+	},
+	"rules": {
+		"no-unused-vars": ["error", { "argsIgnorePattern": "next"}],
+		"camelcase": "off",
+		"consistent-return": "off",
+		"class-methods-use-this": "off",
+		"import/prefer-default-export":"off",
+		"prettier/prettier": "error",
+		"no-underscore-dangle": "off",
+		"no-param-reassign": "off",
+		"no-empty": ["error", { "allowEmptyCatch": true }],
+		// "react/jsx-no-bind": "off",
+		"import/extensions" : [
+			"error",
+			"ignorePackages",
+			{
+				"ts": "never",
+				"tsx" : "never"
+			}
+		],
+		"import/order": [
+			"error",
+			{
+				"groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+				"alphabetize": { "order": "asc", "caseInsensitive": true },
+				"newlines-between": "always"
+			}
+		],
+		"@typescript-eslint/naming-convention": [
+			"error",
+			{
+				"selector": "interface",
+				"format": ["PascalCase"],
+				"custom": {
+					"regex": "^I[A-Z]",
+					"match": true
+				}
+			},
+			{
+				"selector": "interface",
+				"format": ["PascalCase"]
+			}
+		]
+	}
+}
