@@ -26,8 +26,8 @@ export class MeasuresRepository {
 		return Measure.findOne({ _id: id });
 	}
 
-	async findByEmail(customer_code: string): Promise<any> {
-		return Measure.findOne({ customer_code }).then((measure) => measure);
+	async findByMeasureType(measure_type: string): Promise<any> {
+		return Measure.findOne({ measure_type }).then((measure) => measure);
 	}
 
 	async create({
