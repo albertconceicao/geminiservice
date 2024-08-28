@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "STAGE=prd tsx src/index.ts",
-    "dev": "STAGE=dev tsx --watch src/index.ts",
+    "dev": "STAGE=prd tsx --watch src/index.ts",
     "dev:db": "STAGE=prd tsx --watch src/index.ts",
     "dev:win": "set STAGE=dev && tsx --watch src/index.ts",
     "test:database": "tsx --watch src/database/schema.ts",
