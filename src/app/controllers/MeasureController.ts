@@ -92,7 +92,7 @@ export class MeasureController {
 			}
 
 			const measure_value = await GeminiControllerFunction.readImage(image);
-
+			console.log('here');
 			res.json({ measure_value });
 			// const measureExists =
 			// 	await MeasuresRepositoryFunction.findByMeasureType(measure_type);
