@@ -1,0 +1,78 @@
+import fs from 'fs';
+import path from 'path';
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleAIFileManager } from '@google/generative-ai/server';
+import mime from 'mime-types';
+
+import logger from '../utils/logger';
+
+export class GeminiController {
+	/** ------------------------------------------------------------------------------
+	 * @function readImage
+	 *
+	 */
+	async readImage(image: string) {
+		logger.info('readImage >> Start');
+		try {
+			const imageParts = image.split(';base64,');
+
+			const imageType = imageParts[0].split('/')[1];
+			console.log({ imageType });
+			const mimeType = mime.lookup(imageType).toString();
+			console.log({ mimeType });
+
+			const imageBuffer = Buffer.from(imageParts[1], 'base64');
+			const imagePath = path.join(
+				__dirname,
+				'..',
+				'uploads',
+				`temp_image.${imageType}`,
+			);
+
+			fs.writeFileSync(imagePath, imageBuffer);
+
+			const uploadedFile = fs.readFileSync(
+				path.join(__dirname, '..', 'uploads', `temp_image.${imageType}`),
+			);
+			console.log({ uploadedFile });
+
+			const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+			const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!);
+
+			console.log('Here1');
+			const absoluteImagePath = path.join(
+				__dirname,
+				'..',
+				'uploads',
+				`temp_image.${imageType}`,
+			);
+			const uploadResponse = await fileManager.uploadFile(absoluteImagePath, {
+				mimeType,
+				displayName: 'test',
+			});
+			console.log('Here2');
+			console.log(
+				`Uploaded file ${uploadResponse.file.displayName} as: ${uploadResponse.file.uri}`,
+			);
+
+			const model = genAI.getGenerativeModel({
+				// Choose a Gemini model.
+				model: 'gemini-1.5-pro',
+			});
+			const result = await model.generateContent([
+				{
+					fileData: {
+						mimeType: uploadResponse.file.mimeType,
+						fileUri: uploadResponse.file.uri,
+					},
+				},
+				{ text: 'Describe the value of the measure' },
+			]);
+			const measureValue = result.response.text();
+			return measureValue;
+		} catch (error) {
+			logger.error('readImage :: Error :: ', error);
+		}
+	}
+}

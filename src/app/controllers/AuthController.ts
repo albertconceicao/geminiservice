@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-import { CustomersRepository } from '../repositories/CustomersRepository';
+import { MeasuresRepository } from '../repositories/MeasuresRepository';
 
-const CustomersRepositoryFunction = new CustomersRepository();
+const MeasuresRepositoryFunction = new MeasuresRepository();
 
 const SECRET = process.env.JWT_SECRET as string;
 
@@ -11,7 +11,7 @@ export class AuthController {
 	async login(request: any, response: any) {
 		const { email, password } = request.body;
 
-		const customer = await CustomersRepositoryFunction.findByEmail(email);
+		const customer = await MeasuresRepositoryFunction.findByEmail(email);
 
 		if (!customer) {
 			return response.status(401).json({

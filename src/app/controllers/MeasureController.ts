@@ -1,20 +1,22 @@
-import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 
-import { CustomersRepository } from '../repositories/CustomersRepository';
+import { MeasuresRepository } from '../repositories/MeasuresRepository';
 import {
+	customerNotFound,
+	emailAlreadyExists,
 	generalServerError,
 	mandatoryFieldsRequired,
-	emailAlreadyExists,
-	customerNotFound,
 } from '../utils/errors';
 import logger from '../utils/logger';
 import { StatusCode } from '../utils/statusCodes';
 import { verifyRequiredFields } from '../utils/validations';
 
-const CustomersRepositoryFunction = new CustomersRepository();
+import { GeminiController } from './GeminiController';
 
-export class CustomerController {
+const MeasuresRepositoryFunction = new MeasuresRepository();
+const GeminiControllerFunction = new GeminiController();
+
+export class MeasureController {
 	/** ------------------------------------------------------------------------------
 	 * @function list
 	 * @param req
@@ -28,9 +30,9 @@ export class CustomerController {
 			: undefined;
 
 		try {
-			const customers = await CustomersRepositoryFunction.findAll(orderBy);
+			const measures = await MeasuresRepositoryFunction.findAll(orderBy);
 			logger.info('list << End <<');
-			res.status(StatusCode.FOUND).json(customers);
+			res.status(StatusCode.FOUND).json(measures);
 		} catch (error) {
 			logger.error('list :: Error :: ', error);
 			res.status(StatusCode.INTERNAL_SERVER_ERROR).json(generalServerError);
@@ -48,13 +50,13 @@ export class CustomerController {
 		const { id } = req.params;
 		logger.debug('id: ', id);
 		try {
-			const customer = await CustomersRepositoryFunction.findById(id);
+			const measure = await MeasuresRepositoryFunction.findById(id);
 
-			if (!customer) {
+			if (!measure) {
 				return res.status(404).json({ error: 'User not found' });
 			}
 			logger.info('find << End <<');
-			res.status(StatusCode.FOUND).json(customer);
+			res.status(StatusCode.SUCCESS).json(measure);
 		} catch (error) {
 			logger.error('find :: Error :: ', error);
 			res.status(StatusCode.INTERNAL_SERVER_ERROR).json(generalServerError);
@@ -69,13 +71,18 @@ export class CustomerController {
 	async create(req: Request, res: Response) {
 		logger.info('create >> Start');
 		// Create a new records
-		const { name, email, phone, password } = req.body;
-		logger.debug(`name: ${name} , email: ${email}, phone: ${phone}`);
-		const requiredFields = verifyRequiredFields({ name, email });
+		const { image, customer_code, measure_datetime, measure_type } = req.body;
+		logger.debug(
+			`image: ${image} , customer_code: ${customer_code}, measure_datetime: ${measure_datetime}, measure_type: ${measure_type}`,
+		);
+		const requiredFields = verifyRequiredFields({
+			image,
+			customer_code,
+			measure_datetime,
+			measure_type,
+		});
 
 		try {
-			const hashedPassword = bcrypt.hashSync(password, 10);
-
 			if (requiredFields.length > 0) {
 				logger.error('create :: Error :: ', mandatoryFieldsRequired.message);
 				logger.debug('create :: Error :: Fields ', requiredFields);
@@ -84,22 +91,25 @@ export class CustomerController {
 					.json({ error: mandatoryFieldsRequired, fields: requiredFields });
 			}
 
-			const customerExists =
-				await CustomersRepositoryFunction.findByEmail(email);
+			const measure_value = await GeminiControllerFunction.readImage(image);
 
-			if (customerExists) {
-				logger.error('create :: Error :: ', emailAlreadyExists.message);
-				logger.debug('create :: Error :: Email :', email);
-				return res.status(StatusCode.BAD_REQUEST).json(emailAlreadyExists);
-			}
-			const customer = await CustomersRepositoryFunction.create({
-				name,
-				email,
-				phone,
-				password: hashedPassword,
-			});
+			res.json({ measure_value });
+			// const measureExists =
+			// 	await MeasuresRepositoryFunction.findByMeasureType(measure_type);
+
+			// if (measureExists) {
+			// 	logger.error('create :: Error :: ', emailAlreadyExists.message);
+			// 	logger.debug('create :: Error :: Email :', measure_type);
+			// 	return res.status(StatusCode.BAD_REQUEST).json(emailAlreadyExists);
+			// }
+			// const measure = await MeasuresRepositoryFunction.create({
+			// 	image,
+			// 	customer_code,
+			// 	measure_datetime,
+			// 	measure_type,
+			// });
 			logger.info('create << End <<');
-			res.json(customer);
+			// res.json(measure);
 		} catch (error) {
 			logger.error('create :: Error :: ', error);
 			res.status(StatusCode.INTERNAL_SERVER_ERROR).json(generalServerError);
@@ -114,14 +124,18 @@ export class CustomerController {
 	async update(req: Request, res: Response) {
 		logger.info('update >> Start >>');
 		// Update a specific records
-		const { id } = req.params;
-		const { name, email, phone } = req.body;
+		const { measure_uuid } = req.params;
+		const { confirmed_value } = req.body;
 
 		try {
-			const customerExists = await CustomersRepositoryFunction.findById(id);
-			const requiredFields = verifyRequiredFields({ name, email });
+			const measureExists =
+				await MeasuresRepositoryFunction.findById(measure_uuid);
+			const requiredFields = verifyRequiredFields({
+				measure_uuid,
+				confirmed_value,
+			});
 
-			if (!customerExists) {
+			if (!measureExists) {
 				return res
 					.status(StatusCode.NOT_FOUND)
 					.json({ error: 'customer not found' });
@@ -133,23 +147,21 @@ export class CustomerController {
 					.status(StatusCode.BAD_REQUEST)
 					.json({ error: mandatoryFieldsRequired, fields: requiredFields });
 			}
-			const customerByEmail =
-				await CustomersRepositoryFunction.findByEmail(email);
+			const measureByUUID =
+				await MeasuresRepositoryFunction.findByEmail(measure_uuid);
 
-			if (customerByEmail && customerByEmail._id !== id) {
+			if (measureByUUID && measureByUUID._id !== measure_uuid) {
 				logger.error('update :: Error :: ', emailAlreadyExists.message);
-				logger.debug('update :: Error :: Email :', email);
+				logger.debug('update :: Error :: Email :', measure_uuid);
 				return res.status(StatusCode.BAD_REQUEST).json(emailAlreadyExists);
 			}
 
-			const customer = await CustomersRepositoryFunction.update(id, {
-				name,
-				email,
-				phone,
+			const measure = await MeasuresRepositoryFunction.update(measure_uuid, {
+				confirmed_value,
 			});
 
 			logger.info('update << End <<');
-			res.json(customer);
+			res.json(measure);
 		} catch (error) {
 			logger.error('update :: Error :: ', error);
 			res.status(StatusCode.INTERNAL_SERVER_ERROR).json(generalServerError);
@@ -166,12 +178,12 @@ export class CustomerController {
 		// Delete a specific records
 		const { id } = req.params;
 		try {
-			const customer = await CustomersRepositoryFunction.findById(id);
+			const customer = await MeasuresRepositoryFunction.findById(id);
 
 			if (!customer) {
 				return res.status(StatusCode.BAD_REQUEST).json(customerNotFound);
 			}
-			await CustomersRepositoryFunction.delete(id);
+			await MeasuresRepositoryFunction.delete(id);
 			logger.info('delete << End <<');
 			res.sendStatus(StatusCode.NO_CONTENT);
 		} catch (error) {

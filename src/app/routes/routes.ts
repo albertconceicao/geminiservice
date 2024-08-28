@@ -3,26 +3,25 @@
 import { Router } from 'express';
 
 import { AuthController } from '../controllers/AuthController';
-import { CustomerController } from '../controllers/CustomerController';
+import { MeasureController } from '../controllers/MeasureController';
 
-const CustomerControllerFunction = new CustomerController();
+const MeasureControllerFunction = new MeasureController();
 const AuthControllerFunction = new AuthController();
 
 export const router = Router();
 
 router.get(
-	'/customers',
+	'/:customercode/list',
 	AuthControllerFunction.verifyToken,
-	CustomerControllerFunction.list,
+	MeasureControllerFunction.list,
 );
-router.get('/customers/:id', CustomerControllerFunction.find);
-router.delete('/customers/:id', CustomerControllerFunction.delete);
-router.post('/customers/', CustomerControllerFunction.create);
-router.put('/customers/:id', CustomerControllerFunction.update);
+router.get('/:customercode/list', MeasureControllerFunction.find);
+router.post('/upload', MeasureControllerFunction.create);
+router.patch('/confirm', MeasureControllerFunction.update);
 
 router.post('/login', AuthControllerFunction.login);
 router.post(
 	'/authenticatedRoute',
 	AuthControllerFunction.verifyToken,
-	CustomerControllerFunction.list,
+	MeasureControllerFunction.list,
 );

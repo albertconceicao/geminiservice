@@ -1,23 +1,24 @@
 import mongoose, { Schema } from 'mongoose';
 
-const User: any = new Schema(
+const Measure: any = new Schema(
 	{
-		id: mongoose.Schema.Types.ObjectId,
-		name: {
+		measure_uuid: mongoose.Schema.Types.ObjectId,
+		image: {
 			type: String,
 			required: true,
 		},
-		email: {
+		customer_code: {
 			type: String,
 			required: true,
 		},
-		password: {
-			type: String,
+		measure_datetime: {
+			type: Date,
 			required: true,
 		},
-		phone: {
-			type: Number,
+		measure_type: {
+			type: String,
 			required: false,
+			enum: ['WATER', 'GAS'],
 		},
 		created_at: {
 			type: Date,
@@ -29,4 +30,4 @@ const User: any = new Schema(
 	},
 );
 
-mongoose.model('customers', User);
+mongoose.model('measures', Measure);
