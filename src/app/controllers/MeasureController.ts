@@ -2,11 +2,13 @@ import { Request, Response } from 'express';
 
 import { MeasuresRepository } from '../repositories/MeasuresRepository';
 import {
+	base64ImageisNotValid,
 	customerNotFound,
 	emailAlreadyExists,
 	generalServerError,
 	mandatoryFieldsRequired,
 } from '../utils/errors';
+import { isValidBase64Image } from '../utils/isValidBase64';
 import logger from '../utils/logger';
 import { StatusCode } from '../utils/statusCodes';
 import { verifyRequiredFields } from '../utils/validations';
@@ -90,7 +92,12 @@ export class MeasureController {
 					.status(StatusCode.BAD_REQUEST)
 					.json({ error: mandatoryFieldsRequired, fields: requiredFields });
 			}
-
+			if (!isValidBase64Image(image)) {
+				logger.error('create :: Error :: ', base64ImageisNotValid.message);
+				return res
+					.status(StatusCode.BAD_REQUEST)
+					.json({ error: base64ImageisNotValid, fields: requiredFields });
+			}
 			const measure_value = await GeminiControllerFunction.readImage(image);
 			console.log('here');
 			res.json({ measure_value });

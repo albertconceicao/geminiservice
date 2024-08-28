@@ -18,9 +18,7 @@ export class GeminiController {
 			const imageParts = image.split(';base64,');
 
 			const imageType = imageParts[0].split('/')[1];
-			console.log({ imageType });
 			const mimeType = mime.lookup(imageType).toString();
-			console.log({ mimeType });
 
 			const imageBuffer = Buffer.from(imageParts[1], 'base64');
 			const imagePath = path.join(
@@ -31,16 +29,9 @@ export class GeminiController {
 			);
 
 			fs.writeFileSync(imagePath, imageBuffer);
-
-			const uploadedFile = fs.readFileSync(
-				path.join(__dirname, '..', 'uploads', `temp_image.${imageType}`),
-			);
-			console.log({ uploadedFile });
-
 			const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 			const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!);
 
-			console.log('Here1');
 			const absoluteImagePath = path.join(
 				__dirname,
 				'..',
@@ -51,13 +42,11 @@ export class GeminiController {
 				mimeType,
 				displayName: 'test',
 			});
-			console.log('Here2');
 			console.log(
 				`Uploaded file ${uploadResponse.file.displayName} as: ${uploadResponse.file.uri}`,
 			);
 
 			const model = genAI.getGenerativeModel({
-				// Choose a Gemini model.
 				model: 'gemini-1.5-pro',
 			});
 			const result = await model.generateContent([

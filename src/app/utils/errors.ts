@@ -14,6 +14,12 @@ export const mandatoryFieldsRequired = {
 	shortMessage: 'mandatoryFieldsRequired',
 };
 
+export const base64ImageisNotValid = {
+	code: 'ERR-002-VAL',
+	message: 'base64 image is not valid and is missing data:image/type',
+	shortMessage: 'base64ImageIsNotValid',
+};
+
 export const emailAlreadyExists = {
 	code: 'ERR-003-VAL',
 	message: 'This email was already been taken',
