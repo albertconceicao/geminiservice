@@ -47,7 +47,7 @@ export class GeminiController {
 			);
 
 			const model = genAI.getGenerativeModel({
-				model: 'gemini-1.5-pro',
+				model: 'gemini-1.5-flash',
 			});
 			const result = await model.generateContent([
 				{
@@ -56,7 +56,7 @@ export class GeminiController {
 						fileUri: uploadResponse.file.uri,
 					},
 				},
-				{ text: 'Describe the value of the measure' },
+				{ text: 'Return only the numbers of the value of the measure' },
 			]);
 			const measureValue = result.response.text();
 			return measureValue;
