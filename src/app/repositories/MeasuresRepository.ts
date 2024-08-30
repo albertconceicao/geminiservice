@@ -16,10 +16,13 @@ interface IMeasure {
 
 export class MeasuresRepository {
 	// TODO: include the Type of return inside Promise returned from functions
-	async findAll(orderBy?: string): Promise<any> {
-		const direction = orderBy?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-
-		return Measure.find({}).sort({ id: direction.toLowerCase() as any });
+	async findAll(id: string, measure_type?: string): Promise<any> {
+		if (measure_type) {
+			return Measure.find({ _id: id, measure_type }).then(
+				(measures) => measures,
+			);
+		}
+		return Measure.find({ _id: id }).then((measures) => measures);
 	}
 
 	async findById(id: string): Promise<any> {

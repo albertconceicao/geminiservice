@@ -26,16 +26,17 @@ export class MeasureController {
 	 * @param res
 	 */
 	async list(req: Request, res: Response) {
+		const { id, measure_type } = req.params;
+
 		logger.info('list >> Start >>');
 
-		const orderBy: string | undefined = req.query.orderBy
-			? String(req.query.orderBy)
-			: undefined;
-
 		try {
-			const measures = await MeasuresRepositoryFunction.findAll(orderBy);
+			const measures = await MeasuresRepositoryFunction.findAll(
+				id,
+				measure_type,
+			);
 			logger.info('list << End <<');
-			res.status(StatusCode.FOUND).json(measures);
+			res.status(StatusCode.FOUND).json({ customer_code: id, measures });
 		} catch (error) {
 			logger.error('list :: Error :: ', error);
 			res.status(StatusCode.INTERNAL_SERVER_ERROR).json(generalServerError);
