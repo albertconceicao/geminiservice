@@ -59,7 +59,10 @@ export class GeminiController {
 				{ text: 'Return only the numbers of the value of the measure' },
 			]);
 			const measureValue = result.response.text();
-			return measureValue;
+			return {
+				image_url: uploadResponse.file.uri,
+				measureValue,
+			};
 		} catch (error) {
 			logger.error('readImage :: Error :: ', error);
 		}

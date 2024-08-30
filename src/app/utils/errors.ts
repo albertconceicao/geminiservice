@@ -20,10 +20,16 @@ export const base64ImageisNotValid = {
 	shortMessage: 'base64ImageIsNotValid',
 };
 
-export const emailAlreadyExists = {
+export const measureTypeIsNotValid = {
+	code: 'ERR-002-VAL',
+	message: 'measure_type would need to be water or gas',
+	shortMessage: 'measureTypeIsNotValid',
+};
+
+export const measureAlreadyExists = {
 	code: 'ERR-003-VAL',
-	message: 'This email was already been taken',
-	shortMessage: 'emailAlreadyExists',
+	message: 'This measure already exists in the database at the specified month',
+	shortMessage: 'measureAlreadyExists',
 };
 
 export const generalServerError = {

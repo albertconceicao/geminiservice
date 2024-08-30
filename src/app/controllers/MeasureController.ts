@@ -4,9 +4,10 @@ import { MeasuresRepository } from '../repositories/MeasuresRepository';
 import {
 	base64ImageisNotValid,
 	customerNotFound,
-	emailAlreadyExists,
 	generalServerError,
 	mandatoryFieldsRequired,
+	measureAlreadyExists,
+	measureTypeIsNotValid,
 } from '../utils/errors';
 import { isValidBase64Image } from '../utils/isValidBase64';
 import logger from '../utils/logger';
@@ -98,23 +99,35 @@ export class MeasureController {
 					.status(StatusCode.BAD_REQUEST)
 					.json({ error: base64ImageisNotValid, fields: requiredFields });
 			}
+			console.log({ measure_type });
+			if (
+				measure_type.toLowerCase() !== 'water' &&
+				measure_type.toLowerCase() !== 'gas'
+			) {
+				return res
+					.status(StatusCode.BAD_REQUEST)
+					.json({ error: measureTypeIsNotValid, fields: requiredFields });
+			}
+
+			const measureExists =
+				await MeasuresRepositoryFunction.findByMeasureType(measure_type);
+
+			if (measureExists && measureExists.date === measure_datetime) {
+				logger.error('create :: Error :: ', measureAlreadyExists.message);
+				logger.debug('create :: Error :: Email :', measure_type);
+				return res.status(StatusCode.BAD_REQUEST).json(measureAlreadyExists);
+			}
+
 			const measure_value = await GeminiControllerFunction.readImage(image);
 			console.log('here');
-			res.json({ measure_value });
-			// const measureExists =
-			// 	await MeasuresRepositoryFunction.findByMeasureType(measure_type);
-
-			// if (measureExists) {
-			// 	logger.error('create :: Error :: ', emailAlreadyExists.message);
-			// 	logger.debug('create :: Error :: Email :', measure_type);
-			// 	return res.status(StatusCode.BAD_REQUEST).json(emailAlreadyExists);
-			// }
-			// const measure = await MeasuresRepositoryFunction.create({
-			// 	image,
-			// 	customer_code,
-			// 	measure_datetime,
-			// 	measure_type,
-			// });
+			const measure = await MeasuresRepositoryFunction.create({
+				image,
+				customer_code,
+				measure_datetime,
+				measure_type,
+				measure_value: measure_value!.measureValue,
+			});
+			res.json({ image_url: measure_value!.image_url, measure_id: measure.id });
 			logger.info('create << End <<');
 			// res.json(measure);
 		} catch (error) {
@@ -132,20 +145,21 @@ export class MeasureController {
 		logger.info('update >> Start >>');
 		// Update a specific records
 		const { measure_uuid } = req.params;
-		const { confirmed_value } = req.body;
+		const { measure_value } = req.body;
 
 		try {
-			const measureExists =
-				await MeasuresRepositoryFunction.findById(measure_uuid);
 			const requiredFields = verifyRequiredFields({
 				measure_uuid,
-				confirmed_value,
+				measure_value,
 			});
+			const measureExists =
+				await MeasuresRepositoryFunction.findById(measure_uuid);
 
 			if (!measureExists) {
-				return res
-					.status(StatusCode.NOT_FOUND)
-					.json({ error: 'customer not found' });
+				return res.status(StatusCode.NOT_FOUND).json({
+					error_code: 'MEASURE_NOT_FOUND"',
+					error: 'Leitura do mês já realizada',
+				});
 			}
 			if (requiredFields.length > 0) {
 				logger.error('update :: Error :: ', mandatoryFieldsRequired.message);
@@ -164,7 +178,7 @@ export class MeasureController {
 			}
 
 			const measure = await MeasuresRepositoryFunction.update(measure_uuid, {
-				confirmed_value,
+				measure_value,
 			});
 
 			logger.info('update << End <<');

@@ -11,7 +11,7 @@ interface IMeasure {
 	customer_code: string;
 	measure_datetime: Date;
 	measure_type: 'WATER' | 'GAS';
-	confirmed_value?: number;
+	measure_value?: string;
 }
 
 export class MeasuresRepository {
@@ -35,13 +35,15 @@ export class MeasuresRepository {
 		customer_code,
 		measure_datetime,
 		measure_type,
+		measure_value,
 	}: IMeasure): Promise<any> {
 		return Measure.create({
 			image,
 			customer_code,
 			measure_datetime,
 			measure_type,
-		});
+			measure_value,
+		}).then((measure) => measure.id);
 	}
 
 	// TODO: remove the validation, and the two step database update (find and save) have to be implemented separately
