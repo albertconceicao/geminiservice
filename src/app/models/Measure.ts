@@ -20,6 +20,14 @@ const Measure: any = new Schema(
 			required: false,
 			enum: ['WATER', 'GAS'],
 		},
+		measure_value: {
+			type: String,
+			required: true,
+		},
+		confirmed_value: {
+			type: Boolean,
+			required: false,
+		},
 		created_at: {
 			type: Date,
 			default: new Date(),

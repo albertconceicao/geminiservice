@@ -48,16 +48,12 @@ export class MeasuresRepository {
 
 	// TODO: remove the validation, and the two step database update (find and save) have to be implemented separately
 	// TODO: also delegates the error handling to controller
-	async update(
-		id: string,
-		{ image, customer_code, measure_datetime }: IMeasure,
-	): Promise<any> {
+	async update(id: string, measure_value: IMeasure): Promise<any> {
 		const updatedMeasure = await Measure.findOne({ _id: id }).then(
 			(measure: any) => {
 				if (measure) {
-					measure.image = image;
-					measure.customer_code = customer_code;
-					measure.measure_datetime = measure_datetime;
+					measure.measure_value = measure_value;
+					measure.confirmed_value = true;
 					measure
 						.save()
 						.then((responseUpdatedMeasure: string) => responseUpdatedMeasure)

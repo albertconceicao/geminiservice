@@ -145,22 +145,13 @@ export class MeasureController {
 		logger.info('update >> Start >>');
 		// Update a specific records
 		const { measure_uuid } = req.params;
-		const { measure_value } = req.body;
+		const { confirmed_value } = req.body;
 
 		try {
 			const requiredFields = verifyRequiredFields({
 				measure_uuid,
-				measure_value,
+				confirmed_value,
 			});
-			const measureExists =
-				await MeasuresRepositoryFunction.findById(measure_uuid);
-
-			if (!measureExists) {
-				return res.status(StatusCode.NOT_FOUND).json({
-					error_code: 'MEASURE_NOT_FOUND"',
-					error: 'Leitura do mês já realizada',
-				});
-			}
 			if (requiredFields.length > 0) {
 				logger.error('update :: Error :: ', mandatoryFieldsRequired.message);
 				logger.debug('update :: Error :: Fields ', requiredFields);
@@ -168,18 +159,28 @@ export class MeasureController {
 					.status(StatusCode.BAD_REQUEST)
 					.json({ error: mandatoryFieldsRequired, fields: requiredFields });
 			}
-			const measureByUUID =
-				await MeasuresRepositoryFunction.findByEmail(measure_uuid);
+			const measureExists =
+				await MeasuresRepositoryFunction.findById(measure_uuid);
 
-			if (measureByUUID && measureByUUID._id !== measure_uuid) {
-				logger.error('update :: Error :: ', emailAlreadyExists.message);
-				logger.debug('update :: Error :: Email :', measure_uuid);
-				return res.status(StatusCode.BAD_REQUEST).json(emailAlreadyExists);
+			if (!measureExists || measureExists.confirmed_value === true) {
+				return res.status(StatusCode.NOT_FOUND).json({
+					error_code: 'MEASURE_NOT_FOUND"',
+					error: 'Leitura do mês já realizada',
+				});
 			}
+			// const measureByUUID =
+			// 	await MeasuresRepositoryFunction.findByEmail(measure_uuid);
 
-			const measure = await MeasuresRepositoryFunction.update(measure_uuid, {
-				measure_value,
-			});
+			// if (measureByUUID && measureByUUID._id !== measure_uuid) {
+			// 	logger.error('update :: Error :: ', emailAlreadyExists.message);
+			// 	logger.debug('update :: Error :: Email :', measure_uuid);
+			// 	return res.status(StatusCode.BAD_REQUEST).json(emailAlreadyExists);
+			// }
+
+			const measure = await MeasuresRepositoryFunction.update(
+				measure_uuid,
+				confirmed_value,
+			);
 
 			logger.info('update << End <<');
 			res.json(measure);
